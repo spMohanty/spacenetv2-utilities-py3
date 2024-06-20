@@ -1,9 +1,12 @@
 import os
+import sys
 import glob
 import random
 from spaceNetUtilities import labelTools as lT
 from spaceNetUtilities import geoTools as gT
 import argparse
+
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spaceNetUtilities'))
 
 
 def processRasterChip(rasterImage, rasterDescription, geojson, geojsonDescription, outputDirectory='',
