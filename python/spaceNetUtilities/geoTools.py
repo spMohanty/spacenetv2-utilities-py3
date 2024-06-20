@@ -758,7 +758,7 @@ def clipShapeFile(shapeSrc, outputFileName, polyToCut, minpartialPerc=0.0, shape
 
     outGeoJSon = os.path.splitext(outputFileName)[0] + '.geojson'
     if not os.path.exists(os.path.dirname(outGeoJSon)):
-        os.makedirs(os.path.dirname(outGeoJSon))
+        os.makedirs(os.path.dirname(outGeoJSon), exist_ok=True)
 
     outDriver = ogr.GetDriverByName("geojson")
     if os.path.exists(outGeoJSon):
@@ -886,7 +886,7 @@ def cutChipFromMosaic(rasterFileList, shapeFileSrcList, outlineSrc='',outputDire
 
     for rasterFile in rasterFileList:
         if not os.path.exists(os.path.join(outputDirectory, rasterFile[1])):
-            os.makedirs(os.path.join(outputDirectory, rasterFile[1]))
+            os.makedirs(os.path.join(outputDirectory, rasterFile[1]), exist_ok=True)
     idx = 0
     if createPix:
         print(geoTrans)
@@ -1109,7 +1109,7 @@ def cutChipFromRasterCenter(rasterFileList, shapeFileSrc, outlineSrc='',
     layerBase.SetSpatialFilter(geomOutline)
     for rasterFile in rasterFileList:
         if not os.path.exists(os.path.join(outputDirectory, rasterFile[1])):
-            os.makedirs(os.path.join(outputDirectory, rasterFile[1]))
+            os.makedirs(os.path.join(outputDirectory, rasterFile[1]), exist_ok=True)
     for feature in layerBase:
         featureGeom = feature.GetGeometryRef()
         cx, cy, cz = featureGeom.Centroid().GetPoint()

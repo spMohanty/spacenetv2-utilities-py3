@@ -6,8 +6,10 @@ from spaceNetUtilities import labelTools as lT
 from spaceNetUtilities import geoTools as gT
 import argparse
 
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spaceNetUtilities'))
+import ray
+import tqdm
 
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spaceNetUtilities'))
 
 def processRasterChip(rasterImage, rasterDescription, geojson, geojsonDescription, outputDirectory='',
                       imagePixSize=-1, clipOverlap=0.0, randomClip=False,
@@ -50,7 +52,6 @@ def processRasterChip(rasterImage, rasterDescription, geojson, geojsonDescriptio
 
 
     return chipSummaryList
-
 
 def processChipSummaryList(chipSummaryList, outputDirectory='', annotationType='PASCALVOC2012', outputFormat='GTiff',
                            outputPixType='',
@@ -296,16 +297,15 @@ if __name__ == '__main__':
             break
 
         else:
-
-            for rasterImage, geoJson in zip(listofRaster, listofgeojson):
-
+            
+            @ray.remote
+            def process_tile(rasterImage, geoJson):
                 chipSummaryList = processRasterChip(rasterImage, srcImageryDirectory,
                                                     geoJson, args.geoJsonDirectory,
                                                     outputDirectory=fullPathAnnotationsDirectory,
                                                     imagePixSize=args.imgSizePix, clipOverlap=0.0, randomClip=False,
                                                     minpartialPerc=0.0,
                                                     outputPrefix='')
-
                 entryListTmp = processChipSummaryList(chipSummaryList,
                                                       outputDirectory=os.path.join(fullPathAnnotationsDirectory, 'annotations'),
                                                       annotationType=args.annotationType,
@@ -314,8 +314,20 @@ if __name__ == '__main__':
                                                       datasetName='spacenetV2',
                                                       folder_name='folder_name'
                                        )
+
                 print(entryListTmp)
-                entryList.extend(entryListTmp)
+                return entryListTmp
+                 
+            
+            entryList_references = []
+            for rasterImage, geoJson in zip(listofRaster, listofgeojson):
+                result_reference = process_tile.remote(rasterImage, geoJson)
+                entryList_references.append(result_reference)
+                
+            for result_reference in tqdm.tqdm(entryList_references):
+                entryList.extend(
+                    ray.get(result_reference)
+                )
 
     createTrainTestSplitSummary(entryList,
                                 trainTestSplit=args.trainTestSplit,
@@ -324,4 +336,6 @@ if __name__ == '__main__':
                                 annotationType=args.annotationType,
                                 shuffleList=True
                                 )
+    
+    print("Dataset Creation Completed ✅")
 
