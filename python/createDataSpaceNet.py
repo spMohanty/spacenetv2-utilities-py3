@@ -9,6 +9,8 @@ import argparse
 import ray
 import tqdm
 
+ray.init(num_cpus=8) 
+
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'spaceNetUtilities'))
 
 def processRasterChip(rasterImage, rasterDescription, geojson, geojsonDescription, outputDirectory='',
