@@ -123,11 +123,9 @@ def processChipSummaryList(chipSummaryList, outputDirectory='', annotationType='
             print("Annotation Type = {} is not supported yet".format(annotationType))
             return -1
 
-
-
         entryList.append(entry)
 
-        return entryList
+    return entryList
 
 def createTrainTestSplitSummary(entryList, trainTestSplit=0.8,
                                 outputDirectory='',
@@ -245,6 +243,7 @@ if __name__ == '__main__':
                         default=0.8)
 
     args = parser.parse_args()
+    
 
     entryList = []
     srcSpaceNetDirectory = args.srcSpaceNetFolder
@@ -309,6 +308,7 @@ if __name__ == '__main__':
                                                     imagePixSize=args.imgSizePix, clipOverlap=0.0, randomClip=False,
                                                     minpartialPerc=0.0,
                                                     outputPrefix='')
+                
                 entryListTmp = processChipSummaryList(chipSummaryList,
                                                       outputDirectory=os.path.join(fullPathAnnotationsDirectory, 'annotations'),
                                                       annotationType=args.annotationType,
@@ -318,10 +318,9 @@ if __name__ == '__main__':
                                                       folder_name='folder_name'
                                        )
 
-                print(entryListTmp)
                 return entryListTmp
                  
-            
+            # Parallel Processing
             entryList_references = []
             for rasterImage, geoJson in zip(listofRaster, listofgeojson):
                 result_reference = process_tile.remote(rasterImage, geoJson)
@@ -331,6 +330,14 @@ if __name__ == '__main__':
                 entryList.extend(
                     ray.get(result_reference)
                 )
+
+            # Serial Processing
+            # for rasterImage, geoJson in zip(listofRaster, listofgeojson):
+            #     entryList.extend(
+            #         process_tile(rasterImage, geoJson)
+            #     )                
+
+
 
     createTrainTestSplitSummary(entryList,
                                 trainTestSplit=args.trainTestSplit,
